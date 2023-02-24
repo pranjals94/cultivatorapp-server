@@ -117,10 +117,12 @@ async def get_family_persons(Id: int, db: Session = Depends(auth.get_db)):
         if item.person_primary_id == Id:
             family_relations.append({"primary_name": person_primary.name, "secondary_name": person_secondary.name,
                                      "relation_name": item.relationship_name,
-                                     "msg": f"{person_primary.name}'s {item.relationship_name} is {person_secondary.name}"})
+                                     "msg": f"{person_primary.name}'s {item.relationship_name} is {person_secondary.name}.",
+                                     "primary_id": item.person_primary_id, "secondary_id": item.person_secondary_id})
         else:
             family_relations.append({"primary_name": person_secondary.name, "secondary_name": person_primary.name,
                                      "relation_name": item.reverse_relationship_name,
-                                     "msg": f"{person_secondary.name}'s {item.reverse_relationship_name} is {person_primary.name}"})
+                                     "msg": f"{person_secondary.name}'s {item.reverse_relationship_name} is {person_primary.name}. (predicted)",
+                                     "primary_id": item.person_primary_id, "secondary_id": item.person_secondary_id})
 
     return {"family_relations": family_relations}
