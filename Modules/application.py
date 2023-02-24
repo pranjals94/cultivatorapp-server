@@ -126,12 +126,6 @@ async def get_roles(db: Session = Depends(auth.get_db)):
     return {"roles": roles}
 
 
-@router.get("/getroles")
-async def get_roles(db: Session = Depends(auth.get_db)):
-    roles = db.query(model.Role).all()
-    return {"roles": roles}
-
-
 @router.get("/getguests")
 async def get_guests(db: Session = Depends(auth.get_db)):
     tempGuests = db.query(model.Person).filter(model.Person.cultivator_id == None).all()

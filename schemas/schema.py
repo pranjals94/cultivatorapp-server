@@ -8,7 +8,7 @@ print("-----------------schema.py-----------------------------")
 
 
 class person(BaseModel):
-    id: Optional[str]
+    # id: Optional[str]
     name: str
     phone_no: str
     email: str | None = None

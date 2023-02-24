@@ -34,7 +34,10 @@ class Person(Base):
     __tablename__ = "person"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(50))
+    name = Column(String(100))
+    first_name = Column(String(100))
+    middle_name = Column(String(100))
+    last_name = Column(String(100))
     phone_no = Column(BIGINT)
     email = Column(String(50), default=None)
     city = Column(String(50), default=None)
@@ -50,9 +53,51 @@ class Person(Base):
     owner = relationship("User", back_populates="person")
 
 
-class DummyPMSdata(Base):
-    __tablename__ = "dummy_pms_data"
+class PersonRelationships(Base):
+    __tablename__ = "person_relationships"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(50))
-    phone_no = Column(String(15))
+    relationship_name = Column(String(50))
+    person_primary_id = Column(Integer, ForeignKey("person.id"), default=None)
+    person_secondary_id = Column(Integer, ForeignKey("person.id"), default=None)
+    reverse_relationship_name = Column(String(50))
+
+    person_link1 = relationship("Person", foreign_keys=[person_primary_id])
+    person_link2 = relationship("Person", foreign_keys=[person_secondary_id])
+
+
+class RelationshipNames(Base):
+    __tablename__ = "relationship_names"
+
+    id = Column(Integer, primary_key=True, index=True)
+    relationship_name_wrt_primary_id = Column(String(100))
+    relationship_name_wrt_secondary_id = Column(String(100))
+
+# class DummyPMSdata(Base):
+#     __tablename__ = "dummy_pms_data"
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     name = Column(String(50))
+#     phone_no = Column(String(15))
+
+
+# //---------------------relationship testing models- below--------------------------------
+# class Individual(Base):
+#     __tablename__ = "individual"
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     name = Column(String(50))
+#     phone_no = Column(String(15))
+#
+# class IndividualRelationship(Base):
+#     __tablename__ = "individual_relationship"
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     relationship_name = Column(String(50))
+#     individual_id1 = Column(Integer, ForeignKey("individual.id"), default=None)
+#     individual_id2 = Column(Integer, ForeignKey("individual.id"), default=None)
+#
+#     individual_link1 = relationship("Individual", foreign_keys=[individual_id1])
+#     individual_link2 = relationship("Individual", foreign_keys=[individual_id2])
+
+# //-----------relationship testing model - ends---------------------------------------------------------

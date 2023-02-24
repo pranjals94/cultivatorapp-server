@@ -1,3 +1,4 @@
+from Modules import auth
 from fastapi import Depends, APIRouter, Request, Response, HTTPException
 from fastapi.templating import Jinja2Templates
 from models import model
@@ -55,3 +56,71 @@ async def test1():
 @router.get("/dependencytest")
 async def test_alchemy(temp: str = Depends(test1)):
     return temp
+
+
+# //-----Relationship tables test----------------------------------------
+# @router.get("/createindividual")
+# async def create_individual(name: str, phone_no: str, db: Session = Depends(auth.get_db)):
+#     individual = model.Individual(name=name, phone_no=phone_no)
+#     db.add(individual)
+#     db.commit()
+#     return "Individual created"
+#
+
+@router.get("/createrelationship")
+async def create_relationship(relation_name: str, person_primary_id: int, person_secondary_id: int,
+                              reverse_relationship_name: str, db: Session = Depends(auth.get_db)):
+    check_relation = db.query(model.PersonRelationships).filter(
+        model.PersonRelationships.person_primary_id == person_primary_id).filter(
+        model.PersonRelationships.person_secondary_id == person_secondary_id).first()
+    if check_relation:
+        raise HTTPException(status_code=404, detail=f"Relation Between these two persons already Exist")
+
+    create_relation = model.PersonRelationships(relationship_name=relation_name, person_primary_id=person_primary_id,
+                                                person_secondary_id=person_secondary_id,
+                                                reverse_relationship_name=reverse_relationship_name)
+    db.add(create_relation)
+    db.commit()
+    return "Relation created"
+
+
+# @router.get("/getfamilypersons")
+# async def get_family_persons(Id: int, db: Session = Depends(auth.get_db)):
+#     family_relations = db.query(model.PersonRelationships).filter(model.PersonRelationships.person_primary_id == Id).offset(
+#         0).limit(
+#         50).all()
+#     family_members: list = []
+#     for item in family_relations:
+#         person_primary = db.get(model.Person, item.person_primary_id)
+#         person_secondary = db.get(model.Person, item.person_secondary_id)
+#         result = {"self": person_primary.name, "person_name": person_secondary.name, "relation": item.relationship_name}
+#         family_members.append(result)
+#     return family_members
+
+@router.get("/getfamilypersons")
+async def get_family_persons(Id: int, db: Session = Depends(auth.get_db)):
+    family_relations_fwd = db.query(model.PersonRelationships).filter(
+        model.PersonRelationships.person_primary_id == Id).all()
+    family_relations_bkwrd = db.query(model.PersonRelationships).filter(
+        model.PersonRelationships.person_secondary_id == Id).all()
+
+    for item_fwd in family_relations_fwd:
+        for item_bkwrd in family_relations_bkwrd:
+            if item_fwd.person_secondary_id == item_bkwrd.person_primary_id:
+                family_relations_bkwrd.remove(item_bkwrd)
+    family_relation_arrey = family_relations_fwd + family_relations_bkwrd
+
+    family_relations: list = []
+    for item in family_relation_arrey:
+        person_primary = db.get(model.Person, item.person_primary_id)
+        person_secondary = db.get(model.Person, item.person_secondary_id)
+        if item.person_primary_id == Id:
+            family_relations.append({"primary_name": person_primary.name, "secondary_name": person_secondary.name,
+                                     "relation_name": item.relationship_name,
+                                     "msg": f"{person_primary.name}'s {item.relationship_name} is {person_secondary.name}"})
+        else:
+            family_relations.append({"primary_name": person_secondary.name, "secondary_name": person_primary.name,
+                                     "relation_name": item.reverse_relationship_name,
+                                     "msg": f"{person_secondary.name}'s {item.reverse_relationship_name} is {person_primary.name}"})
+
+    return {"family_relations": family_relations}
