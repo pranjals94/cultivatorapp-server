@@ -49,6 +49,7 @@ class Person(Base):
     is_deceased = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     is_deleted = Column(Boolean, default=False)
+    # last_updated_by = Column(String(50), default=None)
 
     owner = relationship("User", back_populates="person")
 

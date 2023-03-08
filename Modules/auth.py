@@ -66,7 +66,7 @@ def create_access_token(username: str, user_id: int, expires_delta: Optional[tim
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHIM)
 
 
-async def get_current_user(request: Request): #Request is global
+async def get_current_user(request: Request):  # Request is global
     try:
         token = request.cookies.get("access_token")
         print("token", token)
@@ -137,10 +137,11 @@ async def log_in_for_access_token(response: Response, login_credentials: schema.
     user = authenticate_user(login_credentials.username, login_credentials.password, db)
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
-    token_expires = timedelta(minutes=20)
+    token_expires = timedelta(minutes=60)
     token = create_access_token(user.username, user.id, expires_delta=token_expires)
     response.set_cookie(key="access_token", value=token, httponly=False)
-    return {"msg": "Log in Successful", "role": user.personRole.name, "username": user.username, "token": token}
+    return {"msg": "Log in Successful", "role": user.personRole.name, "username": user.username,
+            "person_id": user.person_id}
 
 
 @router.get("/logout")
