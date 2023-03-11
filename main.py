@@ -5,9 +5,10 @@ from database import engine
 from starlette.staticfiles import StaticFiles
 
 # if using virtual environment activate it and then type the following.
+# pip uninstall <packagename> # uninstall a package
 # pip list #lists oll the modules
 # pip freeze > requirements.txt  #cli to generate requirements.txt
-# pip install -r requirements.txt # install oll the modules at one go
+# pip install -r requirements.txt # install oll the package at one go
 
 # ------------------------router imports-------------------
 from Modules import auth
