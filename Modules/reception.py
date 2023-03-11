@@ -1,13 +1,13 @@
 import sys
+import openpyxl
 
 sys.path.append("..")
 
-from fastapi import Depends, APIRouter, Request, Response, HTTPException
+from fastapi import Depends, APIRouter, Request, Response, HTTPException, UploadFile, File
 from Modules import auth
 from sqlalchemy.orm import Session
 from models import model
 from schemas import schema
-from openpyxl import Workbook
 
 router = APIRouter(
     prefix="/reception",
@@ -46,12 +46,75 @@ async def get_cultivators(request: Request, db: Session = Depends(auth.get_db)):
 
 
 @router.get("/getguests")
-async def get_guests(db: Session = Depends(auth.get_db)):
-    tempGuests = db.query(model.Person).filter(model.Person.cultivator_id == None).order_by(model.Person.id.desc()).all()
+async def get_guests(currentPage: int, pageSize: int, db: Session = Depends(auth.get_db)):
+    offset = pageSize * (currentPage - 1)
+    totalGuests = db.query(model.Person).filter(model.Person.cultivator_id == None).count()
+    tempGuests = db.query(model.Person).filter(model.Person.cultivator_id == None).order_by(model.Person.id.desc()).offset(offset).limit(
+        pageSize).all()
     guests: list = []
     for guest in tempGuests:
         results = {"id": guest.id, "name": guest.name, "phone_no": guest.phone_no, "email": guest.email,
                    "gender": guest.gender}
         guests.append(results)
-    return {"guests": guests}
+    return {"guests": guests, "totalGuests": totalGuests}
 
+
+@router.post("/savefromexcel")
+async def save_from_excel(file: UploadFile = File(...), db: Session = Depends(auth.get_db)):
+    # path = "C:\\Users\\dcdrns\\Desktop\\Books.xlsx" #syntax for path in python
+    # filename, file_extension = os.path.splitext(file.filename) #split the file name and extension
+    # file.filename = f"tempXLfile{file_extension}"  # rename the file
+
+    file.filename = f"tempXLfile.xlsx"  # rename the file
+    contents = await file.read()
+    with open(f"{file.filename}", "wb") as f:
+        f.write(contents)
+    try:
+        wb_obj = openpyxl.load_workbook("tempXLfile.xlsx")
+    except:
+        return {"msg": "Not a valid .xlsx file !"}
+
+    check_fields = ["name", "first_name", "last_name", "phone_no", "email", "city", "gender", "dob"]
+
+    sheet_obj = wb_obj.active  # This is set to 0 by default. Unless you modify its value, you will always get the
+    # first worksheet by using this method.
+
+    for i in range(2, sheet_obj.max_row + 1):  # row
+        if sheet_obj.cell(row=i, column=4).data_type != 'n' \
+                or sheet_obj.cell(row=i, column=4).value is None \
+                or sheet_obj.cell(row=i,
+                                  column=1).value is None:  # name cannot be null phone_no cant' be null or non numeric
+            return {
+                "msg": f"Emty or Invalid Name and phone no. in Row: {i}. \n max_row: {sheet_obj.max_row} \n max_column: {sheet_obj.max_column}"}
+
+    for i in range(1, sheet_obj.max_row + 1):  # row
+
+        if i == 1:
+            for j in range(1, sheet_obj.max_column + 1):  # itrate each column
+                # cell_obj = sheet_obj['A2']
+                cell_obj = sheet_obj.cell(row=i, column=j)
+                if cell_obj.value != check_fields[j - 1] or sheet_obj.max_column > len(check_fields):
+                    return {"msg": ".xlsx file sample not correct."}
+        else:
+            person = model.Person()
+            person.name = sheet_obj.cell(row=i, column=1).value
+            person.first_name = sheet_obj.cell(row=i, column=2).value
+            person.last_name = sheet_obj.cell(row=i, column=3).value
+            person.phone_no = sheet_obj.cell(row=i, column=4).value
+            person.email = sheet_obj.cell(row=i, column=5).value
+            person.city = sheet_obj.cell(row=i, column=6).value
+            person.gender = sheet_obj.cell(row=i, column=7).value
+            # person.dob = '1997-11-11 13:23:44'
+            if sheet_obj.cell(row=i, column=8).is_date:
+                person.dob = sheet_obj.cell(row=i, column=8).value
+
+            db_person = db.query(model.Person).filter(
+                model.Person.name == person.name).filter(model.Person.phone_no == person.phone_no).first()
+            if db_person:
+                return {"msg": f"Person with same name and phone no. Already Exist. Row: {i}."}
+
+            db.add(person)
+            db.commit()
+            db.refresh(person)
+    wb_obj.close()  # not necessary
+    return {"msg": "Excel sheet uploaded !"}

@@ -15,6 +15,7 @@ router = APIRouter(
     responses={401: {"user": "Not Authorised"}},
 )
 
+
 @router.get("/getuser")  # function
 async def get_user(db: Session = Depends(auth.get_db),
                    user: None = Depends(auth.get_current_user)):  # Depends() is local dependency
@@ -27,11 +28,12 @@ async def get_user(db: Session = Depends(auth.get_db),
 
 
 @router.post("/createperson")
-async def create_person(person: schema.person, db: Session = Depends(auth.get_db), user: None = Depends(auth.get_current_user)):
+async def create_person(person: schema.person, db: Session = Depends(auth.get_db),
+                        user: None = Depends(auth.get_current_user)):
     if user is None:
         # return {"reactNavigateTo": "/localhost:8000", "msg": "could not varify token/cookie"}
         raise HTTPException(status_code=401, detail="Sorry you are Unauthorized !")
-    if(person.id is None):
+    if (person.id is None):
         db_person = db.query(model.Person).filter(
             model.Person.name == person.name).filter(model.Person.phone_no == person.phone_no).first()
 
@@ -40,7 +42,7 @@ async def create_person(person: schema.person, db: Session = Depends(auth.get_db
         db_person = model.Person(**person.dict())  # maps the data
         db.add(db_person)
         db.commit()
-        db.refresh(db_person) #comment here if shows error
+        db.refresh(db_person)  # comment here if shows error
         msg = "Person Created"
     else:
         db_person = db.get(model.Person, person.id)
@@ -52,9 +54,8 @@ async def create_person(person: schema.person, db: Session = Depends(auth.get_db
         db.add(db_person)
         db.commit()
         msg = "Person Updated"
-        db.refresh(db_person) #comment here if shows error
+        db.refresh(db_person)  # comment here if shows error
     return {"msg": msg, "person": db_person}
-
 
 
 # @router.get("/listusers")

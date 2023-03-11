@@ -69,10 +69,10 @@ def create_access_token(username: str, user_id: int, expires_delta: Optional[tim
 async def get_current_user(request: Request):  # Request is global
     try:
         token = request.cookies.get("access_token")
-        print("token", token)
+        # print("token", token)
         # print("cookie token received = ", token)
         if token is None:
-            print("no Cookie token")
+            # print("no Cookie token")
             return None
         playload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHIM])
         username: str = playload.get("sub")
