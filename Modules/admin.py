@@ -17,9 +17,9 @@ router = APIRouter(
 
 @router.post("/createuser")
 async def create_user(user: schema.create_user, db: Session = Depends(auth.get_db), User: None = Depends(auth.get_current_user)):
-    if User is None:
-        # return {"reactNavigateTo": "/localhost:8000", "msg": "could not varify token/cookie"}
-        raise HTTPException(status_code=401, detail="Sorry you are Unauthorized !")
+    # if User is None:
+    #     # return {"reactNavigateTo": "/localhost:8000", "msg": "could not varify token/cookie"}
+    #     raise HTTPException(status_code=401, detail="Sorry you are Unauthorized !")
     person = db.get(model.Person, user.person_id)  # search in person if exist
     if not person:
         raise HTTPException(status_code=404, detail=f"Person with id {user.person_id} not found")

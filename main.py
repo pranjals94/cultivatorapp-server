@@ -12,6 +12,8 @@ from Modules import globalDependenctExample
 from Modules import reception
 from Modules import admin
 from Modules import cultivator
+from Modules import orientation
+from Modules import test
 
 print("----------main.py file serving-------------------------")
 model.Base.metadata.create_all(bind=engine)  # create database
@@ -42,6 +44,8 @@ app.include_router(globalDependenctExample.router)
 app.include_router(reception.router)
 app.include_router(admin.router)
 app.include_router(cultivator.router)
+app.include_router(orientation.router)
+app.include_router(test.router)
 app.mount('/', StaticFiles(directory="static", html=True), name="static")
 
 

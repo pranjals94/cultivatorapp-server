@@ -7,6 +7,7 @@ from Modules import auth
 from sqlalchemy.orm import Session
 from models import model
 from schemas import schema
+from openpyxl import Workbook
 
 router = APIRouter(
     prefix="/reception",
@@ -46,10 +47,11 @@ async def get_cultivators(request: Request, db: Session = Depends(auth.get_db)):
 
 @router.get("/getguests")
 async def get_guests(db: Session = Depends(auth.get_db)):
-    tempGuests = db.query(model.Person).filter(model.Person.cultivator_id == None).all()
+    tempGuests = db.query(model.Person).filter(model.Person.cultivator_id == None).order_by(model.Person.id.desc()).all()
     guests: list = []
     for guest in tempGuests:
         results = {"id": guest.id, "name": guest.name, "phone_no": guest.phone_no, "email": guest.email,
                    "gender": guest.gender}
         guests.append(results)
     return {"guests": guests}
+

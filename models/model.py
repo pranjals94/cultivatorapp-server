@@ -38,7 +38,7 @@ class Person(Base):
     first_name = Column(String(100))
     middle_name = Column(String(100))
     last_name = Column(String(100))
-    phone_no = Column(BIGINT)
+    phone_no = Column(BIGINT, nullable=False)
     email = Column(String(50), default=None)
     city = Column(String(50), default=None)
     gender = Column(String(50), default=None)
