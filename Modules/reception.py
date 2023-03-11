@@ -28,9 +28,9 @@ async def get_guests(obj: schema.assign_cultivator_to_persons, db: Session = Dep
 
 @router.get("/getcultivators")
 async def get_cultivators(request: Request, db: Session = Depends(auth.get_db)):
-    user = await auth.get_current_user(request)
-    if user is None:
-        raise HTTPException(status_code=401, detail="Sorry you are Unauthorized !")
+    # user = await auth.get_current_user(request)
+    # if user is None:
+    #     raise HTTPException(status_code=401, detail="Sorry you are Unauthorized !")
     tempCultivators = db.query(model.User).filter(model.User.role_id == 2).offset(0).limit(
         50).all()  # role id 2 is for cultivator
     # userDetails = db.get(model.User, user.get("id"))

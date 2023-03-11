@@ -4,6 +4,11 @@ from fastapi import FastAPI
 from database import engine
 from starlette.staticfiles import StaticFiles
 
+# if using virtual environment activate it and then type the following.
+# pip list #lists oll the modules
+# pip freeze > requirements.txt  #cli to generate requirements.txt
+# pip install -r requirements.txt # install oll the modules at one go
+
 # ------------------------router imports-------------------
 from Modules import auth
 from Modules import application
@@ -18,9 +23,7 @@ from Modules import test
 print("----------main.py file serving-------------------------")
 model.Base.metadata.create_all(bind=engine)  # create database
 
-
 app = FastAPI()
-
 
 # --------------allow cors--------------------------
 origins = [
@@ -36,7 +39,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 app.include_router(auth.router)
 app.include_router(application.router)
 app.include_router(get_req_redirect.router)
@@ -47,6 +49,3 @@ app.include_router(cultivator.router)
 app.include_router(orientation.router)
 app.include_router(test.router)
 app.mount('/', StaticFiles(directory="static", html=True), name="static")
-
-
-
