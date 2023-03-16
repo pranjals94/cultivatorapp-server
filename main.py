@@ -31,7 +31,8 @@ origins = [
     "http://localhost:3000",
     "localhost:3000",
 ]
-
+# A "middleware" is a function that works with every request before it is processed by any specific path operation.
+# And also with every response before returning it. refer docs for more info
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

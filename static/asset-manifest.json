@@ -1,19 +1,19 @@
 {
   "files": {
-    "main.css": "/static/css/main.a28669ae.css",
-    "main.js": "/static/js/main.90401baa.js",
+    "main.css": "/static/css/main.397adcf1.css",
+    "main.js": "/static/js/main.63337388.js",
     "static/js/787.9c6c3276.chunk.js": "/static/js/787.9c6c3276.chunk.js",
     "static/media/user.jpg": "/static/media/user.6194f97b0a1d1d5cd115.jpg",
     "static/media/loading.gif": "/static/media/loading.7275117da7a00ba9da4b.gif",
     "static/media/Radha-Madanmohan-Temple.jpg": "/static/media/Radha-Madanmohan-Temple.93fc84840110a9bfa7fc.jpg",
     "static/media/GEV-Logo.png": "/static/media/GEV-Logo.d3ddf2eddeb374654d7d.png",
     "index.html": "/index.html",
-    "main.a28669ae.css.map": "/static/css/main.a28669ae.css.map",
-    "main.90401baa.js.map": "/static/js/main.90401baa.js.map",
+    "main.397adcf1.css.map": "/static/css/main.397adcf1.css.map",
+    "main.63337388.js.map": "/static/js/main.63337388.js.map",
     "787.9c6c3276.chunk.js.map": "/static/js/787.9c6c3276.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.a28669ae.css",
-    "static/js/main.90401baa.js"
+    "static/css/main.397adcf1.css",
+    "static/js/main.63337388.js"
   ]
 }

@@ -57,7 +57,7 @@ def authenticate_user(username: str, password: str, db):
 
 
 def create_access_token(username: str, user_id: int, expires_delta: Optional[timedelta] = None):
-    encode = {"sub": username, "id": user_id}
+    encode = {"sub": username, "id": user_id}  # information to be hashed in the token
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
@@ -139,7 +139,8 @@ async def log_in_for_access_token(response: Response, login_credentials: schema.
         raise HTTPException(status_code=404, detail="user not found")
     token_expires = timedelta(minutes=60)
     token = create_access_token(user.username, user.id, expires_delta=token_expires)
-    response.set_cookie(key="access_token", value=token, httponly=False)
+    response.set_cookie(key="access_token", value=token,
+                        httponly=False)  # if front end is running in a different server, cookies will not work.
     return {"msg": "Log in Successful", "role": user.personRole.name, "username": user.username,
             "person_id": user.person_id}
 

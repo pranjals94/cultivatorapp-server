@@ -1,10 +1,8 @@
-import os
 import sys
-
-import openpyxl
 
 sys.path.append("..")
 
+from functools import wraps
 from Modules import auth
 from fastapi import Depends, APIRouter, Request, Response, HTTPException, UploadFile, File
 from fastapi.templating import Jinja2Templates
@@ -12,6 +10,7 @@ from models import model
 from Common import services
 from sqlalchemy.orm import Session
 from schemas import schema
+import requests
 
 templates = Jinja2Templates(directory="static")
 router = APIRouter(
@@ -19,6 +18,13 @@ router = APIRouter(
     tags=["test"],
     responses={401: {"user": "Not Authorised"}},
 )
+
+
+@router.get("/teest")
+async def test():
+    response = requests.get('https://jsonplaceholder.typicode.com/todos/1')
+    print(response.content)
+    return {"test": "test"}
 
 
 # @router.post("/exceltest")
@@ -177,3 +183,28 @@ async def get_family_persons(Id: int, db: Session = Depends(auth.get_db)):
                                      "primary_id": item.person_primary_id, "secondary_id": item.person_secondary_id})
 
     return {"family_relations": family_relations}
+
+
+# --------------------------------custom decorators------------------------------
+def auth_required(*, name: str = None, testArrey: list = None):
+    def inner(func):
+        print("---this code runs only once during---")
+
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            print(name)
+            print(testArrey)
+            print(kwargs["speak"])
+            temp = kwargs["anArrey"]
+            print(temp)
+            return await func(*args, **kwargs)
+
+        return wrapper
+
+    return inner
+
+
+@router.post("/decorator")
+@auth_required(name="Pranjal", testArrey=[84, 89, 837, 7685, 98])
+async def root(speak="truth", anArrey=[2, 4, 1, 3, 4]):
+    return {"message": "Hello World", "payload": "payload"}
