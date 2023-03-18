@@ -1,19 +1,19 @@
 {
   "files": {
-    "main.css": "/static/css/main.397adcf1.css",
-    "main.js": "/static/js/main.63337388.js",
+    "main.css": "/static/css/main.740c97d6.css",
+    "main.js": "/static/js/main.bff479f4.js",
     "static/js/787.9c6c3276.chunk.js": "/static/js/787.9c6c3276.chunk.js",
+    "static/media/loading1.gif": "/static/media/loading1.5fa1fce2713a8ea92bf6.gif",
     "static/media/user.jpg": "/static/media/user.6194f97b0a1d1d5cd115.jpg",
-    "static/media/loading.gif": "/static/media/loading.7275117da7a00ba9da4b.gif",
     "static/media/Radha-Madanmohan-Temple.jpg": "/static/media/Radha-Madanmohan-Temple.93fc84840110a9bfa7fc.jpg",
     "static/media/GEV-Logo.png": "/static/media/GEV-Logo.d3ddf2eddeb374654d7d.png",
     "index.html": "/index.html",
-    "main.397adcf1.css.map": "/static/css/main.397adcf1.css.map",
-    "main.63337388.js.map": "/static/js/main.63337388.js.map",
+    "main.740c97d6.css.map": "/static/css/main.740c97d6.css.map",
+    "main.bff479f4.js.map": "/static/js/main.bff479f4.js.map",
     "787.9c6c3276.chunk.js.map": "/static/js/787.9c6c3276.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.397adcf1.css",
-    "static/js/main.63337388.js"
+    "static/css/main.740c97d6.css",
+    "static/js/main.bff479f4.js"
   ]
 }

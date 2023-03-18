@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from database import engine
 from starlette.staticfiles import StaticFiles
+from fastapi_utils.tasks import repeat_every
 
 # if using virtual environment activate it and then type the following.
 # pip uninstall <packagename> # uninstall a package
@@ -41,6 +42,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.on_event("startup")
+@repeat_every(seconds=60, wait_first=True)
+def periodic():
+    print("scheduled task")
+
+
+# -- APIs'
 app.include_router(auth.router)
 app.include_router(application.router)
 app.include_router(get_req_redirect.router)
@@ -50,4 +59,6 @@ app.include_router(admin.router)
 app.include_router(cultivator.router)
 app.include_router(orientation.router)
 app.include_router(test.router)
+
+# ----static directory----
 app.mount('/', StaticFiles(directory="static", html=True), name="static")

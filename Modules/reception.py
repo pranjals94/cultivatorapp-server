@@ -1,5 +1,7 @@
+import os
 import sys
 import openpyxl
+from sqlalchemy import or_
 
 sys.path.append("..")
 
@@ -49,7 +51,8 @@ async def get_cultivators(request: Request, db: Session = Depends(auth.get_db)):
 async def get_guests(currentPage: int, pageSize: int, db: Session = Depends(auth.get_db)):
     offset = pageSize * (currentPage - 1)
     totalGuests = db.query(model.Person).filter(model.Person.cultivator_id == None).count()
-    tempGuests = db.query(model.Person).filter(model.Person.cultivator_id == None).order_by(model.Person.id.desc()).offset(offset).limit(
+    tempGuests = db.query(model.Person).filter(model.Person.cultivator_id == None).order_by(
+        model.Person.id.desc()).offset(offset).limit(
         pageSize).all()
     guests: list = []
     for guest in tempGuests:
@@ -118,3 +121,21 @@ async def save_from_excel(file: UploadFile = File(...), db: Session = Depends(au
             db.refresh(person)
     wb_obj.close()  # not necessary
     return {"msg": "Excel sheet uploaded !"}
+
+
+@router.get("/search")
+async def search(currentPage: int = 1, pageSize: int = 10, search_input: str = '', db: Session = Depends(auth.get_db)):
+    searchData = f'%{search_input}%'
+    if searchData == '%%':
+        # return {"msg": "Empty search value."}
+        raise HTTPException(status_code=404, detail="Empty Search value!")
+    offset = pageSize * (currentPage - 1)
+    persons = db.query(model.Person).filter(model.Person.cultivator_id == None).filter(
+        or_(model.Person.name.ilike(searchData),
+            model.Person.phone_no.ilike(
+                searchData))).offset(offset).limit(
+        pageSize).all()  # ilike gurantees case insensitive
+    totalGuests = db.query(model.Person).filter(or_(model.Person.name.ilike(searchData),
+                                                    model.Person.phone_no.ilike(
+                                                        searchData))).count()
+    return {"persons": persons, "totalGuests": totalGuests}
