@@ -13,7 +13,6 @@ class User(Base):
     date_created = Column(DateTime, default=datetime.datetime.now())
     is_active = Column(Boolean, default=True)
     is_deleted = Column(Boolean, default=False)
-    created_by = Column(Integer, default=None)
 
     role_id = Column(Integer, ForeignKey("role.id"), default=None)
     personRole = relationship("Role", back_populates="user")

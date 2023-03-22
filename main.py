@@ -60,5 +60,7 @@ app.include_router(cultivator.router)
 app.include_router(orientation.router)
 app.include_router(test.router)
 
-# ----static directory----
+# access the files inside images using get request
+app.mount('/images', StaticFiles(directory="Images", html=False), name="images") # this line should be above the below app.mount code
+# ----static directory---- read https://www.starlette.io/staticfiles/ to know about StaticFiles
 app.mount('/', StaticFiles(directory="static", html=True), name="static")
