@@ -46,8 +46,9 @@ async def create_user(user: schema.create_user, db: Session = Depends(auth.get_d
 
 
 @router.get("/listpersons")
-async def list_persons(offset: int | None = 0, limit: int | None = 50, db: Session = Depends(auth.get_db)):
-    tempPersons = db.query(model.Person).offset(offset).limit(limit).all()
+async def list_persons(offset: int | None = 0, limit: int | None = 15, db: Session = Depends(auth.get_db)):
+    tempPersons = db.query(model.Person).order_by(
+        model.Person.id.desc()).offset(offset).limit(limit).all()
     persons: list = []
     for person in tempPersons:
         user = db.query(model.User).filter(model.User.person_id == person.id).first()

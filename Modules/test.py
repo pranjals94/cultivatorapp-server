@@ -1,3 +1,4 @@
+import os
 import sys
 
 sys.path.append("..")
@@ -10,6 +11,7 @@ from models import model
 from Common import services
 from sqlalchemy.orm import Session
 from schemas import schema
+from fastapi.responses import FileResponse
 import requests
 
 templates = Jinja2Templates(directory="static")
@@ -208,3 +210,10 @@ def auth_required(*, name: str = None, testArrey: list = None):
 @auth_required(name="Pranjal", testArrey=[84, 89, 837, 7685, 98])
 async def root(speak="truth", anArrey=[2, 4, 1, 3, 4]):
     return {"message": "Hello World", "payload": "payload"}
+
+# ------------------------------------------------------------------------------------------
+
+@router.get("/getfile")
+async def get_file():
+    # file_path = os.path.join(path, "")
+    return FileResponse("profileImages/cat.jpg")

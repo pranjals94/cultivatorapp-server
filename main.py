@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from database import engine
 from starlette.staticfiles import StaticFiles
-from fastapi_utils.tasks import repeat_every
+# from fastapi_utils.tasks import repeat_every # pip install fastapi-utils, does not support on our ec2 linux version
 
 # if using virtual environment activate it and then type the following.
 # pip uninstall <packagename> # uninstall a package
@@ -43,10 +43,10 @@ app.add_middleware(
 )
 
 
-@app.on_event("startup")
-@repeat_every(seconds=60, wait_first=True)
-def periodic():
-    print("scheduled task")
+# @app.on_event("startup")
+# @repeat_every(seconds=60, wait_first=True)
+# def periodic():
+#     print("scheduled task")
 
 
 # -- APIs'
