@@ -1,7 +1,9 @@
 import os
 import sys
+from datetime import date
+
 import openpyxl
-from sqlalchemy import or_
+from sqlalchemy import or_, and_, exists
 
 sys.path.append("..")
 
@@ -34,12 +36,7 @@ async def get_cultivators(request: Request, db: Session = Depends(auth.get_db)):
     # if user is None:
     #     raise HTTPException(status_code=401, detail="Sorry you are Unauthorized !")
     tempCultivators = db.query(model.User).filter(model.User.role_id == 2).offset(0).limit(
-        50).all()  # role id 2 is for cultivator
-    # userDetails = db.get(model.User, user.get("id"))
-    # print(cultivators[2].person.name)
-    # if(userDetails.personRole.name!="ADMIN"):
-    #     raise HTTPException(status_code=403, detail="Forbidden !")
-    # personUser = db.query(model.Person).filter(model.Person.id == userDetails.person_id).first()
+        50).all()
     cultivators: list = []
     for cultivator in tempCultivators:
         results = {"id": cultivator.person.id, "name": cultivator.person.name}
@@ -114,7 +111,8 @@ async def save_from_excel(file: UploadFile = File(...), db: Session = Depends(au
             db_person = db.query(model.Person).filter(
                 model.Person.name == person.name).filter(model.Person.phone_no == person.phone_no).first()
             if db_person:
-                return {"msg": f"Person with same name and phone no. Already Exist. Row: {i}."}
+                return {
+                    "msg": f"Person with name'{person.name}' and phone '{person.phone_no}', already Exist in Row: {i}."}
 
             db.add(person)
             db.commit()
@@ -139,3 +137,125 @@ async def search(currentPage: int = 1, pageSize: int = 10, search_input: str = '
                                                     model.Person.phone_no.ilike(
                                                         searchData))).count()
     return {"persons": persons, "totalGuests": totalGuests}
+
+
+@router.post("/createorientation")
+async def search(orientation: schema.create_orientation, db: Session = Depends(auth.get_db)):
+    orientation_temp = model.Orientation(**orientation.dict())
+    db.add(orientation_temp)
+    db.commit()
+    db.refresh(orientation_temp)
+    print(orientation)
+    return {"msg": orientation}
+
+
+@router.get("/getorientations")
+async def search(db: Session = Depends(auth.get_db)):
+    orientations = db.query(model.Orientation).with_entities(model.Orientation.id,
+                                                             model.Orientation.orientation_name,
+                                                             model.Orientation.orientation_end_date_time,
+                                                             model.Orientation.orientation_start_date_time,
+                                                             model.Orientation.venue,
+                                                             model.Person.name.label("cultivator_name")
+                                                             # select person.name as cultivator_name
+                                                             ).filter(
+        model.Orientation.cultivator_id == model.Person.id).all()
+    return {"orientations": orientations}
+
+
+@router.post("/createvisits")
+async def search(file: UploadFile = File(...), db: Session = Depends(auth.get_db)):
+    file.filename = f"tempXLfile1.xlsx"  # rename the file
+    contents = await file.read()
+    with open(f"{file.filename}", "wb") as f:
+        f.write(contents)
+    try:
+        wb_obj = openpyxl.load_workbook("tempXLfile1.xlsx")
+    except:
+        return {"msg": "Not a valid .xlsx file !"}
+
+    check_fields = ["name", "phone_no", "check_in_date_time", "check_out_date_time", "accommodation"]
+
+    sheet_obj = wb_obj.active  # This is set to 0 by default. Unless you modify its value, you will always get the
+    # first worksheet by using this method.
+
+    for i in range(2, sheet_obj.max_row + 1):  # row
+        if sheet_obj.cell(row=i, column=2).data_type != 'n' \
+                or sheet_obj.cell(row=i, column=1).value is None \
+                or sheet_obj.cell(row=i, column=2).value is None \
+                or sheet_obj.cell(row=i, column=3).value is None:
+            return {
+                "msg": f"Emty or Invalid Fields in Row: {i}. \n max_row: {sheet_obj.max_row} \n max_column: {sheet_obj.max_column}"}
+    for i in range(1, sheet_obj.max_row + 1):  # row
+        if i == 1:
+            for j in range(1, sheet_obj.max_column + 1):  # itrate each column
+                # cell_obj = sheet_obj['A2']
+                cell_obj = sheet_obj.cell(row=i, column=j)
+                if cell_obj.value != check_fields[j - 1] or sheet_obj.max_column > len(check_fields):
+                    return {"msg": ".xlsx file sample not correct."}
+        else:
+            name = sheet_obj.cell(row=i, column=1).value
+            phone = sheet_obj.cell(row=i, column=2).value
+            start_time = sheet_obj.cell(row=i, column=3).value
+            end_time = sheet_obj.cell(row=i, column=4).value
+            db_person = db.query(model.Person).filter(
+                and_(model.Person.name == name, model.Person.phone_no == phone)).first()
+            if not db_person:  # if person does not exist
+                db_person = model.Person(
+                    name=name,
+                    phone_no=phone
+                )
+                db.add(db_person)
+                db.commit()
+                db.refresh(db_person)
+
+            db_visit = model.Visit(
+                person_id=db_person.id,
+                check_in_date_time=start_time,
+                check_out_date_time=end_time
+            )
+            db.add(db_visit)
+            db.commit()
+            db.refresh(db_visit)
+    wb_obj.close()  # not necessary
+    return {"msg": "Visits Created", "filename": file.filename}
+
+
+@router.get("/getvisits")
+async def search(db: Session = Depends(auth.get_db)):
+    visits = db.query(model.Visit).with_entities(
+        model.Visit.id,
+        model.Visit.check_in_date_time,
+        model.Person.name.label("visitor_name"),
+        model.Person.phone_no
+    ).filter(
+        and_(model.Visit.person_id == model.Person.id, model.Visit.orientation_assigned == False)).all()
+    return {"visits": visits}
+
+
+@router.post("/addparticipants")
+async def search(obj: schema.addparticipants, db: Session = Depends(auth.get_db)):
+    for visit in obj.visitors:
+        visit_update_orientation_assigned = db.get(model.Visit, visit.get("visit_id"))
+        visit_update_orientation_assigned.orientation_assigned = True
+
+        participant = model.OrientationParticipants(
+            orientation_id=obj.orientation,
+            visit_id=visit.get("visit_id"),
+            visitor_name=visit.get("visitor_name")
+        )
+        db.add(participant)
+        db.commit()
+        db.refresh(participant)
+        db.add(visit_update_orientation_assigned)
+        db.commit()
+        db.refresh(visit_update_orientation_assigned)
+
+    return {"msg": "participants added"}
+
+
+@router.get("/getparticipants")
+async def search(orientation_id: int, db: Session = Depends(auth.get_db)):
+    participants = db.query(model.OrientationParticipants).filter(
+        model.OrientationParticipants.orientation_id == orientation_id).all()
+    return {"participants": participants}

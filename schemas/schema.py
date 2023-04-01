@@ -1,11 +1,15 @@
-from datetime import datetime
+from datetime import datetime, time
 from typing import Optional
-from pydantic import BaseModel, ValidationError, validator
+from pydantic import BaseModel, ValidationError, validator, Field
 
 from fastapi import Depends, APIRouter, Request, Response, HTTPException
 
 print("-----------------schema.py-----------------------------")
 
+class add_visitor(BaseModel):
+    orientation_id: int
+    visitor_name: str = ''
+    phone_no: int
 
 class person(BaseModel):
     id: Optional[int]
@@ -47,6 +51,17 @@ class log_in(BaseModel):
     password: str
 
 
+# middle_name: str | None = Field(regex="^[a-zA-Z ]+$", max_length=20)
+class create_orientation(BaseModel):
+    orientation_name: str = Field(regex="^[a-zA-Z0-9 ]+$", min_length=3, max_length=20)
+    cultivator_id: int | None
+    cultivator_assistant_id: int | None
+    orienter_id: int | None
+    orientation_start_date_time: datetime
+    orientation_end_date_time: datetime
+    venue: str = Field(regex="^[a-zA-Z0-9 ]+$", min_length=3, max_length=20)
+
+
 # //-----------------assign cultivator to persons start------------
 class active_cultivator(BaseModel):
     id: str
@@ -59,6 +74,11 @@ class assign_cultivator_to_persons(BaseModel):
 
 
 # //-----------------assign cultivator to persons end--------------
+
+class addparticipants(BaseModel):
+    orientation: int
+    visitors: list
+
 
 class dummy_pms_data(BaseModel):
     name: str

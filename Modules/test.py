@@ -1,6 +1,8 @@
 import os
 import sys
 
+from sqlalchemy import and_, exists
+
 sys.path.append("..")
 
 from functools import wraps
@@ -13,6 +15,7 @@ from sqlalchemy.orm import Session
 from schemas import schema
 from fastapi.responses import FileResponse
 import requests
+from database import engine as db_engine
 
 templates = Jinja2Templates(directory="static")
 router = APIRouter(
@@ -211,9 +214,71 @@ def auth_required(*, name: str = None, testArrey: list = None):
 async def root(speak="truth", anArrey=[2, 4, 1, 3, 4]):
     return {"message": "Hello World", "payload": "payload"}
 
+
 # ------------------------------------------------------------------------------------------
 
 @router.get("/getfile")
 async def get_file():
-    # file_path = os.path.join(path, "")
     return FileResponse("profileImages/cat.jpg")
+
+
+@router.get("/testcreate")
+async def test_create(name: str, db: Session = Depends(auth.get_db)):
+    # file_path = os.path.join(path, "")
+    create_model = model.DateTimeTest()
+    create_model.name = name
+    db.add(create_model)
+    db.commit()
+    print(name)
+    return FileResponse("profileImages/cat.jpg")
+
+
+@router.get("/testupdate")
+async def test_update(name: str, db: Session = Depends(auth.get_db)):
+    # file_path = os.path.join(path, "")
+    create_model = db.get(model.DateTimeTest, 1)
+    create_model.name = name
+    db.add(create_model)
+    db.commit()
+    print(name)
+    return FileResponse("profileImages/cat.jpg")
+
+
+# //----------join test-------------------------------------------------------------------------
+
+@router.get("/testjoin")
+async def test_join(db: Session = Depends(auth.get_db)):
+    # q = db.query(model.User, model.Person).join(model.Person).limit(1).all() # needs foreign key q = db.query(
+    # model.User.username, model.User.hashed_password).filter(model.User.id == 1).first() q = db.query(
+    # model.User.username, model.Person.name).join(model.Person, model.User.person_id == model.Person.id).first()
+    q = db.query(model.User.username, model.Role.name).join(model.Role, model.User.role_id == model.Role.id).first()
+    # q = db.query(model.User.username, model.Person.name, model.Role.name).all()
+    # q = db.query(model.User.username, model.User.hashed_password).all() # select specific columns of a table
+
+    # print(q[0].Person.name)
+    return {"data": q}
+
+
+# //------------------rawSql---------------
+@router.get("/testrawsql")
+async def test_join(db: Session = Depends(auth.get_db)):
+    # rs = db_engine.connect().execute('SELECT * FROM user')
+
+    # with db_engine.connect() as con:
+    #     rs = con.execute('SELECT * FROM user')
+
+    # result: None
+    # with db_engine.connect() as con:
+    #     rs = con.execute('SELECT * FROM orientation_participants')
+    #     result = rs.mappings().all()
+    # print(result[0])
+
+    result: None
+    with db_engine.connect() as con:
+        rs = con.execute(
+            'SELECT EXISTS(SELECT * FROM orientation_participants WHERE orientation_participants.visit_id = 2)')
+        result = rs.mappings().first()
+    # print(result)
+    abc = db.query(exists().where((model.Person.id == 101))).scalar()  # checks if exists
+    print(abc)
+    return {"msg": "ok"}

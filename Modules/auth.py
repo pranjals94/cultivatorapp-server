@@ -81,8 +81,8 @@ async def get_current_user(request: Request):  # Request is global
             return None
         return {"username": username, "id": user_id}
     except JWTError:
-        raise get_user_exception()
-
+        # raise get_user_exception()
+        return None
 
 async def get_current_user_for_global_dependencies(request: Request):
     try:
