@@ -236,11 +236,11 @@ async def test_create(name: str, db: Session = Depends(auth.get_db)):
 @router.get("/testupdate")
 async def test_update(name: str, db: Session = Depends(auth.get_db)):
     # file_path = os.path.join(path, "")
-    create_model = db.get(model.DateTimeTest, 1)
-    create_model.name = name
-    db.add(create_model)
-    db.commit()
-    print(name)
+    # create_model = db.get(model.DateTimeTest, 1)
+    # create_model.name = name
+    # db.add(create_model)
+    # db.commit()
+    # print(name)
     return FileResponse("profileImages/cat.jpg")
 
 
@@ -276,9 +276,10 @@ async def test_join(db: Session = Depends(auth.get_db)):
     result: None
     with db_engine.connect() as con:
         rs = con.execute(
-            'SELECT EXISTS(SELECT * FROM orientation_participants WHERE orientation_participants.visit_id = 2)')
-        result = rs.mappings().first()
-    # print(result)
+            'SELECT EXISTS(SELECT * FROM orientation_participants WHERE orientation_participants.visit_id = 30)')
+        # result = rs.mappings().first() # checks if exist
+        # result = rs.mappings().all()
+
     abc = db.query(exists().where((model.Person.id == 101))).scalar()  # checks if exists
     print(abc)
     return {"msg": "ok"}

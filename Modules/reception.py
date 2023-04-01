@@ -3,7 +3,10 @@ import sys
 from datetime import date
 
 import openpyxl
+from openpyxl.styles import Font, Alignment
+from openpyxl.workbook import Workbook
 from sqlalchemy import or_, and_, exists
+from starlette.responses import FileResponse
 
 sys.path.append("..")
 
@@ -259,3 +262,24 @@ async def search(orientation_id: int, db: Session = Depends(auth.get_db)):
     participants = db.query(model.OrientationParticipants).filter(
         model.OrientationParticipants.orientation_id == orientation_id).all()
     return {"participants": participants}
+
+
+@router.post("/createexcelsheet")
+async def search(exportxcel: schema.exportexcel, db: Session = Depends(auth.get_db)):
+    workbook = Workbook()
+    sheet = workbook.active
+    field_names = ["id", "name", "phone_no", "email", "gender", "dob"]
+    for i in range(1, len(field_names)+1):
+        sheet.cell(row=1, column=i).value = field_names[i-1]
+        sheet.cell(row=1, column=i).font = Font(bold=True)
+        sheet.cell(row=1, column=i).alignment = Alignment(horizontal='center')
+
+    for j in range(1, len(exportxcel.persons)+1):
+        db_person = db.query(model.Person).with_entities(model.Person.id, model.Person.name, model.Person.phone_no,
+                                                         model.Person.email, model.Person.gender,
+                                                         model.Person.dob).filter(model.Person.id == exportxcel.persons[j-1]).first()
+        print(db_person[1])
+        for i in range(1, len(db_person)+1):
+            sheet.cell(row=j+1, column=i).value = db_person[i-1]
+    workbook.save("export.xlsx")
+    return FileResponse("export.xlsx")

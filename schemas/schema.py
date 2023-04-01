@@ -6,10 +6,16 @@ from fastapi import Depends, APIRouter, Request, Response, HTTPException
 
 print("-----------------schema.py-----------------------------")
 
+
+class exportexcel(BaseModel):
+    persons: list = []
+
+
 class add_visitor(BaseModel):
     orientation_id: int
     visitor_name: str = ''
     phone_no: int
+
 
 class person(BaseModel):
     id: Optional[int]
