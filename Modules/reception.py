@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import date
+from datetime import date, time, datetime
 
 import openpyxl
 from openpyxl.styles import Font, Alignment
@@ -131,19 +131,26 @@ async def search(currentPage: int = 1, pageSize: int = 10, search_input: str = '
         # return {"msg": "Empty search value."}
         raise HTTPException(status_code=404, detail="Empty Search value!")
     offset = pageSize * (currentPage - 1)
-    persons = db.query(model.Person).filter(model.Person.cultivator_id == None).filter(
-        or_(model.Person.name.ilike(searchData),
-            model.Person.phone_no.ilike(
-                searchData))).offset(offset).limit(
-        pageSize).all()  # ilike gurantees case insensitive
-    totalGuests = db.query(model.Person).filter(or_(model.Person.name.ilike(searchData),
-                                                    model.Person.phone_no.ilike(
-                                                        searchData))).count()
+
+    if search_input.isnumeric():
+        persons = db.query(model.Person).filter(and_(or_(model.Person.cultivator_id !=0,model.Person.cultivator_id == None),model.Person.phone_no.ilike(
+                    searchData))).offset(offset).limit(pageSize).all()
+                  # ilike gurantees case insensitive
+        totalGuests = db.query(model.Person).filter(and_(or_(model.Person.cultivator_id !=0,model.Person.cultivator_id == None),model.Person.phone_no.ilike(
+                    searchData))).count()
+    else:
+        persons = db.query(model.Person).filter(and_(or_(model.Person.cultivator_id !=0,model.Person.cultivator_id == None), model.Person.name.ilike(
+            searchData))).offset(offset).limit(
+            pageSize).all()
+        # ilike gurantees case insensitive
+        totalGuests = db.query(model.Person).filter(and_(or_(model.Person.cultivator_id !=0,model.Person.cultivator_id == None), model.Person.name.ilike(
+            searchData))).count()
+
     return {"persons": persons, "totalGuests": totalGuests}
 
 
 @router.post("/createorientation")
-async def search(orientation: schema.create_orientation, db: Session = Depends(auth.get_db)):
+async def create_orientation(orientation: schema.create_orientation, db: Session = Depends(auth.get_db)):
     orientation_temp = model.Orientation(**orientation.dict())
     db.add(orientation_temp)
     db.commit()
@@ -153,7 +160,7 @@ async def search(orientation: schema.create_orientation, db: Session = Depends(a
 
 
 @router.get("/getorientations")
-async def search(db: Session = Depends(auth.get_db)):
+async def get_orientations(db: Session = Depends(auth.get_db)):
     orientations = db.query(model.Orientation).with_entities(model.Orientation.id,
                                                              model.Orientation.orientation_name,
                                                              model.Orientation.orientation_end_date_time,
@@ -167,7 +174,7 @@ async def search(db: Session = Depends(auth.get_db)):
 
 
 @router.post("/createvisits")
-async def search(file: UploadFile = File(...), db: Session = Depends(auth.get_db)):
+async def create_visits(file: UploadFile = File(...), db: Session = Depends(auth.get_db)):
     file.filename = f"tempXLfile1.xlsx"  # rename the file
     contents = await file.read()
     with open(f"{file.filename}", "wb") as f:
@@ -225,7 +232,7 @@ async def search(file: UploadFile = File(...), db: Session = Depends(auth.get_db
 
 
 @router.get("/getvisits")
-async def search(db: Session = Depends(auth.get_db)):
+async def get_visits(db: Session = Depends(auth.get_db)):
     visits = db.query(model.Visit).with_entities(
         model.Visit.id,
         model.Visit.check_in_date_time,
@@ -237,7 +244,7 @@ async def search(db: Session = Depends(auth.get_db)):
 
 
 @router.post("/addparticipants")
-async def search(obj: schema.addparticipants, db: Session = Depends(auth.get_db)):
+async def add_participants(obj: schema.addparticipants, db: Session = Depends(auth.get_db)):
     for visit in obj.visitors:
         visit_update_orientation_assigned = db.get(model.Visit, visit.get("visit_id"))
         visit_update_orientation_assigned.orientation_assigned = True
@@ -258,28 +265,31 @@ async def search(obj: schema.addparticipants, db: Session = Depends(auth.get_db)
 
 
 @router.get("/getparticipants")
-async def search(orientation_id: int, db: Session = Depends(auth.get_db)):
+async def get_participants(orientation_id: int, db: Session = Depends(auth.get_db)):
     participants = db.query(model.OrientationParticipants).filter(
         model.OrientationParticipants.orientation_id == orientation_id).all()
     return {"participants": participants}
 
 
 @router.post("/createexcelsheet")
-async def search(exportxcel: schema.exportexcel, db: Session = Depends(auth.get_db)):
+async def create_excel_sheet(exportxcel: schema.exportexcel, db: Session = Depends(auth.get_db)):
     workbook = Workbook()
     sheet = workbook.active
     field_names = ["id", "name", "phone_no", "email", "gender", "dob"]
-    for i in range(1, len(field_names)+1):
-        sheet.cell(row=1, column=i).value = field_names[i-1]
+    for i in range(1, len(field_names) + 1):
+        sheet.cell(row=1, column=i).value = field_names[i - 1]
         sheet.cell(row=1, column=i).font = Font(bold=True)
         sheet.cell(row=1, column=i).alignment = Alignment(horizontal='center')
 
-    for j in range(1, len(exportxcel.persons)+1):
+    for j in range(1, len(exportxcel.persons) + 1):
         db_person = db.query(model.Person).with_entities(model.Person.id, model.Person.name, model.Person.phone_no,
                                                          model.Person.email, model.Person.gender,
-                                                         model.Person.dob).filter(model.Person.id == exportxcel.persons[j-1]).first()
+                                                         model.Person.dob).filter(
+            model.Person.id == exportxcel.persons[j - 1]).first()
         print(db_person[1])
-        for i in range(1, len(db_person)+1):
-            sheet.cell(row=j+1, column=i).value = db_person[i-1]
+        for i in range(1, len(db_person) + 1):
+            sheet.cell(row=j + 1, column=i).value = db_person[i - 1]
     workbook.save("export.xlsx")
     return FileResponse("export.xlsx")
+
+

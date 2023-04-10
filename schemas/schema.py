@@ -6,6 +6,9 @@ from fastapi import Depends, APIRouter, Request, Response, HTTPException
 
 print("-----------------schema.py-----------------------------")
 
+class filterSearch(BaseModel):
+    startDate: datetime
+    endDate: datetime
 
 class exportexcel(BaseModel):
     persons: list = []

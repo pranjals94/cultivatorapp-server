@@ -13,7 +13,7 @@ from starlette.staticfiles import StaticFiles
 
 # ------------------------router imports-------------------
 from Modules import auth
-from Modules import application
+from Modules import common
 from Modules import get_req_redirect
 from Modules import globalDependenctExample
 from Modules import reception
@@ -32,6 +32,7 @@ origins = [
     "http://localhost:3000",
     "localhost:3000",
 ]
+
 # A "middleware" is a function that works with every request before it is processed by any specific path operation.
 # And also with every response before returning it. refer docs for more info
 app.add_middleware(
@@ -42,7 +43,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # @app.on_event("startup")
 # @repeat_every(seconds=60, wait_first=True)
 # def periodic():
@@ -51,7 +51,7 @@ app.add_middleware(
 
 # -- APIs'
 app.include_router(auth.router)
-app.include_router(application.router)
+app.include_router(common.router)
 app.include_router(get_req_redirect.router)
 app.include_router(globalDependenctExample.router)
 app.include_router(reception.router)

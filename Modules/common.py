@@ -12,8 +12,8 @@ from models import model
 from schemas import schema
 
 router = APIRouter(
-    prefix="/application",
-    tags=["application"],
+    prefix="/common",
+    tags=["common"],
     responses={401: {"user": "Not Authorised"}},
 )
 
@@ -73,7 +73,7 @@ async def create_person(person: schema.person, db: Session = Depends(auth.get_db
 
 
 @router.get("/getroles")
-async def get_roles(request: Request, db: Session = Depends(auth.get_db)):
+async def get_roles(request: Request, db: Session = Depends(auth.get_db)) -> dict:  # return type will be a dictionary
     # print(request.client)
     roles = db.query(model.Role).all()
     return {"roles": roles}

@@ -283,3 +283,29 @@ async def test_join(db: Session = Depends(auth.get_db)):
     abc = db.query(exists().where((model.Person.id == 101))).scalar()  # checks if exists
     print(abc)
     return {"msg": "ok"}
+
+
+# '2023-04-07T04:30:52.088Z' DateTime Format T indicates the start of the time or as a seperator between the date and
+# time string The TIme contains trailing fractional seconds part in up to microseconds (6 digits) precision Z means
+# zero time zone. The literal “Z” is actually part of the ISO 8601 DateTime standard for UTC times. When “Z” (Zulu)
+# is tacked on the end of a time, it indicates that the time is UTC, so really the literal Z is part of the time. TZD
+# = time zone designator (Z or +hh:mm or -hh:mm) A time zone offset of "+hh:mm" indicates that the date/time uses a
+# local time zone which is "hh" hours and "mm" minutes ahead of UTC. A time zone offset of "-hh:mm" indicates that
+# the date/time uses a local time zone which is "hh" hours and "mm" minutes behind UTC.
+# time zone of india is UTC+05:30
+@router.post("/searchbyfilter")
+async def search_by_filter(filters: schema.filterSearch, db: Session = Depends(auth.get_db)):
+    # db_person = db.query(model.Person).with_entities(model.Person.name).filter(
+    #     model.Person.date_created > '2023-04-06T06:30:00.0+05:30').all()  # 12 midnight
+
+    # print(filters.startDate)
+    # date = filters.startDate.strftime('%Y-%m-%d') print(datetime_obj)
+    # print(date)
+    # time = filters.startDate.strftime("%H:%M:%S")
+    # print(time)
+
+    db_persons = db.query(model.Person).with_entities(model.Person.id, model.Person.name, model.Person.phone_no, model.Person.email, model.Person.gender).filter(
+        and_(model.Person.date_created >= filters.startDate,
+             model.Person.date_created <= filters.endDate)).all()
+
+    return {"result": db_persons}

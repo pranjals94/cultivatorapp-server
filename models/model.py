@@ -5,7 +5,6 @@ from sqlalchemy.orm import relationship
 
 from database import Base
 
-
 class User(Base):
     __tablename__ = "user"
 
@@ -16,8 +15,9 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_deleted = Column(Boolean, default=False)
 
-    role_id = Column(BIGINT, ForeignKey("role.id"), default=None)
-    personRole = relationship("Role", back_populates="user")
+    role_id = Column(BIGINT, ForeignKey("role.id"),
+                     default=None)  # foreign keys are on sql database side, so wee need to create the table again
+    personRole = relationship("Role", back_populates="user")  # relationship is in sqlAlchemy
 
     person_id = Column(BIGINT, ForeignKey("person.id"))
     person = relationship("Person", back_populates="owner")
