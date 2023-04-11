@@ -133,17 +133,17 @@ async def search(currentPage: int = 1, pageSize: int = 10, search_input: str = '
     offset = pageSize * (currentPage - 1)
 
     if search_input.isnumeric():
-        persons = db.query(model.Person).filter(and_(or_(model.Person.cultivator_id !=0,model.Person.cultivator_id == None),model.Person.phone_no.ilike(
+        persons = db.query(model.Person).filter(and_(model.Person.cultivator_id == None,model.Person.phone_no.ilike(
                     searchData))).offset(offset).limit(pageSize).all()
                   # ilike gurantees case insensitive
-        totalGuests = db.query(model.Person).filter(and_(or_(model.Person.cultivator_id !=0,model.Person.cultivator_id == None),model.Person.phone_no.ilike(
+        totalGuests = db.query(model.Person).filter(and_(model.Person.cultivator_id == None,model.Person.phone_no.ilike(
                     searchData))).count()
     else:
-        persons = db.query(model.Person).filter(and_(or_(model.Person.cultivator_id !=0,model.Person.cultivator_id == None), model.Person.name.ilike(
+        persons = db.query(model.Person).filter(and_(model.Person.cultivator_id == None, model.Person.name.ilike(
             searchData))).offset(offset).limit(
             pageSize).all()
         # ilike gurantees case insensitive
-        totalGuests = db.query(model.Person).filter(and_(or_(model.Person.cultivator_id !=0,model.Person.cultivator_id == None), model.Person.name.ilike(
+        totalGuests = db.query(model.Person).filter(and_(model.Person.cultivator_id == None, model.Person.name.ilike(
             searchData))).count()
 
     return {"persons": persons, "totalGuests": totalGuests}
